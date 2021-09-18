@@ -9,8 +9,22 @@ project 'test'
     location    (bindir)
     targetdir   (bindir .. '/test')
 
+    includedirs {
+        '../envi/include'
+    }
+
     files {
         'capturing.cpp'
+    }
+
+    links {
+        'SM',
+        'ICE',
+        'X11',
+        'Xmu',
+        'Xinerama',
+        'dl',
+        'envi'
     }
 
 	runtime 'Debug'
