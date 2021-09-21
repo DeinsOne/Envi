@@ -33,44 +33,44 @@ namespace Envi {
         return static_cast<int>(local_windows.size());
     }
 
-    template <class MONITORTPE>
-    bool isMonitorInsideBounds(MONITORTPE monitors, const Monitor &monitor) {
-        auto totalwidth = 0;
-        for (auto &m : monitors) {
-            totalwidth += Width(m);
-        }
-        // if the monitor doesnt exist any more!
-        if (std::find_if(begin(monitors), end(monitors), [&](auto &m)
-                         { return m.Id == monitor.Id; }) == end(monitors))
-        {
-            return false;
-        } // if the area to capture is outside the dimensions of the desktop!!
-        auto &realmonitor = monitors[Index(monitor)];
-        if (Height(realmonitor) < Height(monitor) ||          // monitor height check
-            totalwidth < Width(monitor) + OffsetX(monitor) || // total width check
-            Width(monitor) > Width(realmonitor))              // regular width check
+    // template <class MONITORTPE>
+    // bool isMonitorInsideBounds(MONITORTPE monitors, const Monitor &monitor) {
+    //     auto totalwidth = 0;
+    //     for (auto &m : monitors) {
+    //         totalwidth += Width(m);
+    //     }
+    //     // if the monitor doesnt exist any more!
+    //     if (std::find_if(begin(monitors), end(monitors), [&](auto &m)
+    //                      { return m.Id == monitor.Id; }) == end(monitors))
+    //     {
+    //         return false;
+    //     } // if the area to capture is outside the dimensions of the desktop!!
+    //     auto &realmonitor = monitors[Index(monitor)];
+    //     if (Height(realmonitor) < Height(monitor) ||          // monitor height check
+    //         totalwidth < Width(monitor) + OffsetX(monitor) || // total width check
+    //         Width(monitor) > Width(realmonitor))              // regular width check
 
-        {
-            return false;
-        } // if the entire screen is capture and the offsets changed, get out and rebuild
-        else if (Height(realmonitor) == Height(monitor) && Width(realmonitor) == Width(monitor) &&
-                 (OffsetX(realmonitor) != OffsetX(monitor) || OffsetY(realmonitor) != OffsetY(monitor)))
-        {
-            return false;
-        }
-        return true;
-    }
+    //     {
+    //         return false;
+    //     } // if the entire screen is capture and the offsets changed, get out and rebuild
+    //     else if (Height(realmonitor) == Height(monitor) && Width(realmonitor) == Width(monitor) &&
+    //              (OffsetX(realmonitor) != OffsetX(monitor) || OffsetY(realmonitor) != OffsetY(monitor)))
+    //     {
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
-    bool isMonitorInsideBounds(const std::vector<Monitor> &monitors, const Monitor &monitor) {
-        return isMonitorInsideBounds(monitors, monitor);
-    }
-    namespace C_API {
-        bool isMonitorInsideBounds(const Monitor *monitors, const int monitorsize, const Monitor *monitor) {
-            return isMonitorInsideBounds(std::vector<Monitor>(monitors, monitors + monitorsize), *monitor);
-        }
-    }; // namespace C_API
+    // bool isMonitorInsideBounds(const std::vector<Monitor> &monitors, const Monitor &monitor) {
+    //     return isMonitorInsideBounds(monitors, monitor);
+    // }
+    // namespace C_API {
+    //     bool isMonitorInsideBounds(const Monitor *monitors, const int monitorsize, const Monitor *monitor) {
+    //         return isMonitorInsideBounds(std::vector<Monitor>(monitors, monitors + monitorsize), *monitor);
+    //     }
+    // }; // namespace C_API
 
-
+    static bool ScreenCaptureManagerExists = false;
     class WindowCaptureManager : public ICapturerManager {
         public:
             std::shared_ptr<Thread_Data> _threadData;
@@ -78,6 +78,9 @@ namespace Envi {
             std::thread _thread;
 
             WindowCaptureManager() {
+                // There must be the only one WindowCaptureManager instance
+                assert(!ScreenCaptureManagerExists);
+                ScreenCaptureManagerExists = true;
                 _threadData = std::make_shared<Thread_Data>();
                 _threadData->CommonData_.paused = false;
             }
@@ -87,7 +90,6 @@ namespace Envi {
                 _threadData->CommonData_.paused = false;               // unpaused the threads to let everything exit
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
             }
 
             void start() {
@@ -104,29 +106,16 @@ namespace Envi {
                             continue;
                         }
 
-
-                        // if (_threadData->CommonData_.expectedErrorEvent) {
-                            // _threadData->CommonData_.terminateThreadsEvent = true;
-                            // manager.Join();
-                            // _threadData->CommonData_.expectedErrorEvent = Thread_Data_->CommonData_.UnexpectedErrorEvent =
-                                // Thread_Data_->CommonData_.TerminateThreadsEvent = false;
-                            // Clean up
-                            // std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep for 1 second since an error occcured
-
-                            // ThreadMgr.Init(Thread_Data_);
-                        // }
+                        // Reinit manager
                         if (_threadData->CommonData_.expectedErrorEvent) {
-                            // _threadData->CommonData_.terminateThreadsEvent = true;
-                            printf("Rebuilding...\n");
-                            manager.Init(_threadData);
                             _threadData->CommonData_.expectedErrorEvent = false;
-                            // std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                            manager.Init(_threadData);
                             continue;
                         }
 
                         // Pause detection
                         if (_threadData->CommonData_.paused) {
-                            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                            std::this_thread::sleep_for(std::chrono::milliseconds(30));
                             continue;
                         }
 

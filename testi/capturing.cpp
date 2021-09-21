@@ -26,7 +26,10 @@ int main(int argc, char** argv) {
             decltype(windows) ret;
 
             for (auto i : windows) {
-                if (std::string(i.Name).find("screen_capture_lite") != std::string::npos ) {
+                if (std::string(i.Name).find("envinteraction :") != std::string::npos ) {
+                    ret.push_back(i);
+                }
+                else if (std::string(i.Name).find("firefox") != std::string::npos) {
                     ret.push_back(i);
                 }
             }
@@ -35,12 +38,12 @@ int main(int argc, char** argv) {
         }
     )->OnNewFrame([&](const Envi::Image& im, const Envi::Window& wnd) {
         printf("New frame %d : %dx%d\n", wnd.Handle, wnd.Size.x, wnd.Size.y );
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     });
 
     capCfg->OnFrameChanged([&](const Envi::Image& im, const Envi::Window& wnd) {
-        printf("Frame changed: \n" );
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        printf("Frame changed %d : %dx%d \n", wnd.Handle, wnd.Size.x, wnd.Size.y );
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     });
 
     printf("\n  START CAPTURING\n");
@@ -49,7 +52,7 @@ int main(int argc, char** argv) {
     capCfg->startCapturing();
 
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
     return 0;
 }

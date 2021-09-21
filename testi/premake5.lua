@@ -18,15 +18,13 @@ project 'test'
     }
 
     links {
-        'pthread',
-        'SM',
-        'ICE',
-        'X11',
-        'Xmu',
-        'Xinerama',
-        'dl',
         'envi'
     }
+
+    filter 'system:linux'
+        links {
+            'pthread'
+        }
 
 	runtime 'Debug'
 	symbols 'on'

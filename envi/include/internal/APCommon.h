@@ -64,11 +64,11 @@ namespace Envi {
     Monitor CreateMonitor(int index, int id, int adapter, int h, int w, int ox, int oy, const std::string &n, float scale);
     ENVI_EXTERN Image CreateImage(const ImageRect &imgrect, int rowpadding, const ImageBGRA *data);
 
-    template <typename F, typename W>
+    // template <typename F, typename W>
     struct CaptureData {
-        F OnNewFrame;
-        F OnFrameChanged;
-        W getThingsToWatch;
+        WindowCaptureCallback   OnNewFrame;
+        WindowCaptureCallback   OnFrameChanged;
+        WindowCallback          getThingsToWatch;
     };
 
     struct CommonData {
@@ -83,16 +83,13 @@ namespace Envi {
     };
 
     struct Thread_Data {
-        CaptureData<WindowCaptureCallback, WindowCallback> WindowCaptureData;
+        CaptureData WindowCaptureData;
         CommonData CommonData_;
     };
 
     class BaseFrameProcessor {
         public:
             std::shared_ptr<Thread_Data> Data;
-            std::unique_ptr<unsigned char[]> ImageBuffer;
-            int ImageBufferSize = 0;
-            // bool FirstRun = true;
     };
 
 
@@ -114,58 +111,6 @@ namespace Envi {
             wholeimg.isContiguous = dstrowstride == srcrowstride;
             data.OnNewFrame(wholeimg, window);
         }
-
-        if (data.OnFrameChanged) {
-            auto newimg = CreateImage(imageract, srcrowstride - dstrowstride, startimgsrc);
-            auto oldimg = CreateImage(imageract, 0, reinterpret_cast<const ImageBGRA *>(base.ImageBuffer.get()));
-
-            if (Width(newimg) != Width(oldimg) || Height(newimg) != Height(oldimg) ) {
-                data.OnFrameChanged(newimg, window);
-            }
-
-        }
-
-        // Copy image to FrameProcessor
-        // auto startdst = base.ImageBuffer.get();
-        // if (dstrowstride == srcrowstride) { // no need for multiple calls, there is no padding here
-        //     memcpy(startdst, startsrc, dstrowstride * Height(window));
-        // }
-        // else {
-        //     for (auto i = 0; i < Height(window); i++) {
-        //         memcpy(startdst + (i * dstrowstride), startsrc + (i * srcrowstride), dstrowstride);
-        //     }
-        // }
-
-    //     if (data.OnNewFrame) { // each frame we still let the caller know if asked for
-    //         auto wholeimg = CreateImage(imageract, srcrowstride, startimgsrc);
-    //         wholeimg.isContiguous = dstrowstride == srcrowstride;
-    //         data.OnNewFrame(wholeimg, window);
-    //     }
-    //     if (data.OnFrameChanged) { // difs are needed!
-    //         if (base.FirstRun) {
-    //             // first time through, just send the whole image
-    //             auto wholeimg = CreateImage(imageract, srcrowstride, startimgsrc);
-    //             wholeimg.isContiguous = dstrowstride == srcrowstride;
-    //             data.OnFrameChanged(wholeimg, window);
-    //             base.FirstRun = false;
-    //         }
-    //         else {
-    //             // user wants difs, lets do it!
-    //             auto newimg = CreateImage(imageract, srcrowstride - dstrowstride, startimgsrc);
-    //             auto oldimg = CreateImage(imageract, 0, reinterpret_cast<const ImageBGRA *>(base.ImageBuffer.get()));
-    //             auto imgdifs = GetDifs(oldimg, newimg);
-
-    //             for (auto &r : imgdifs) {
-    //                 auto leftoffset = r.left * sizeofimgbgra;
-    //                 auto thisstartsrc = startsrc + leftoffset + (r.top * srcrowstride);
-
-    //                 auto difimg = CreateImage(r, srcrowstride, reinterpret_cast<const ImageBGRA *>(thisstartsrc));
-    //                 difimg.isContiguous = false;
-    //                 data.OnFrameChanged(difimg, mointor);
-    //             }
-    //         }
-    //     }
-
     }
 
 };

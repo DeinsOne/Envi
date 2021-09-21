@@ -52,10 +52,25 @@ Envi::DUPL_RETURN Envi::X11FrameProcessor::ProcessFrame(Window& selectedwindow){
     XWindowAttributes wndattr;
 
     if(XGetWindowAttributes(SelectedDisplay, SelectedWindow, &wndattr) == 0){
-        return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED;//window might not be valid any more
+        return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; //window might not be valid any more
     }
 
-    if(wndattr.width != Width(selectedwindow) || wndattr.height != Height(selectedwindow)){
+    if(wndattr.width != Width(selectedwindow) || wndattr.height != Height(selectedwindow)) {
+        Envi::ImageRect imageract;
+        imageract.left = 0;
+        imageract.top = 0;
+        imageract.bottom = Height(selectedwindow);
+        imageract.right = Width(selectedwindow);
+
+        const auto sizeofimgbgra = static_cast<int>(sizeof(ImageBGRA));
+        const auto startimgsrc = reinterpret_cast<const ImageBGRA *>((unsigned char*)XImage_->data);
+        auto dstrowstride = sizeofimgbgra * Width(selectedwindow);
+
+        auto wholeimg = CreateImage(imageract, XImage_->bytes_per_line, startimgsrc);
+
+        // Call OnFrameChanged with old window and image
+        Data->WindowCaptureData.OnFrameChanged(wholeimg, selectedwindow );
+
         return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; //window size changed. This will rebuild everything
     }
 
@@ -72,7 +87,7 @@ Envi::DUPL_RETURN Envi::X11FrameProcessor::ProcessFrame(Window& selectedwindow){
                      AllPlanes)) {
         return DUPL_RETURN_ERROR_EXPECTED;
     }
-    // FIXME:
+
     ProcessCapture(Data->WindowCaptureData, *this, selectedwindow, (unsigned char*)XImage_->data, XImage_->bytes_per_line);
     return Ret;
 }

@@ -44,11 +44,6 @@ namespace Envi {
         int y;
     };
 
-    // struct ENVI_EXTERN MousePoint {
-        // Point Position;
-        // Point HotSpot;
-    // };
-
     struct ENVI_EXTERN Window {
         size_t Handle;
         Point Position;
@@ -86,7 +81,7 @@ namespace Envi {
     //     ENVI_EXTERN int GetMonitors(Monitor *monitors, int monitors_size);
     //     ENVI_EXTERN bool isMonitorInsideBounds(const Monitor *monitors, const int monitorsize, const Monitor *monitor);
     // }; // namespace C_API
-    ENVI_EXTERN bool isMonitorInsideBounds(const std::vector<Monitor> &monitors, const Monitor &monitor);
+    // ENVI_EXTERN bool isMonitorInsideBounds(const std::vector<Monitor> &monitors, const Monitor &monitor);
 
     // Callbecks
     typedef std::function<void(const Envi::Image &img, const Window &window)> WindowCaptureCallback;
@@ -99,10 +94,6 @@ namespace Envi {
             virtual bool IsPaused() = 0;
             virtual void Resume() = 0;
 
-            /**
-             * @return Returns COPY of current image. You have to manually clean image data after using
-            */
-            // virtual std::vector<Image> GetImages() = 0;
     };
 
     template <typename CALLBACK>
