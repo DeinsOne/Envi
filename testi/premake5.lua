@@ -18,6 +18,7 @@ project 'test'
     }
 
     links {
+        'pthread',
         'SM',
         'ICE',
         'X11',

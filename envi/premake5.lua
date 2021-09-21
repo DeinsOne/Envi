@@ -15,13 +15,17 @@ project 'envi'
 
     files {
         'src/Envi.cpp',
-        'src/APCommon.cpp'
+        'src/APCommon.cpp',
+        'src/ThreadManager.cpp'
     }
 
     filter 'system:linux'
         files {
             'src/linux/GetWindows.cpp',
-            'src/linux/GetMonitors.cpp'
+            'src/linux/GetMonitors.cpp',
+            'src/linux/x11FrameProcessor.cpp',
+            'src/linux/ThreadRunner.cpp',
+            'src/linux/x11FrameProcessor.cpp'
         }
 
         links {

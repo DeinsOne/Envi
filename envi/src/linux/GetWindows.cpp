@@ -82,66 +82,66 @@ namespace {
     }
 }
 
-namespace AP {
-    namespace Envi {
 
-        void AddWindow(Display* display, XID& window, std::vector<Window>& wnd) {
-            Atom Class = XInternAtom(display, "WM_CLASS", false);
-            char* className = XGetAtomName(display, Class);
+namespace Envi {
 
-            using namespace std::string_literals;
+    void AddWindow(Display* display, XID& window, std::vector<Window>& wnd) {
+        Atom Class = XInternAtom(display, "WM_CLASS", false);
+        char* className = XGetAtomName(display, Class);
 
-            auto wm_name = GetWMName(display, window);
-            auto candidates = TextPropertyToStrings(display, wm_name.get());
-            Window w = {};
-            w.Handle = static_cast<size_t>( (size_t) window);
+        using namespace std::string_literals;
 
-            XWindowAttributes wndattr;
-            XGetWindowAttributes(display, window, &wndattr);
+        auto wm_name = GetWMName(display, window);
+        auto candidates = TextPropertyToStrings(display, wm_name.get());
+        Window w = {};
+        w.Handle = static_cast<size_t>( (size_t) window);
 
-            w.Position = Point{ wndattr.x, wndattr.y };
-            w.Size = Point{ wndattr.width, wndattr.height };
+        XWindowAttributes wndattr;
+        XGetWindowAttributes(display, window, &wndattr);
+
+        w.Position = Point{ wndattr.x, wndattr.y };
+        w.Size = Point{ wndattr.width, wndattr.height };
 		
-            auto name = candidates.empty() ? std::string() : std::move(candidates.front());
-            if (name.size() > sizeof(w.Name) - 1) {
-                name.resize(sizeof(w.Name) - 1);
-            }
-
-            std::transform(name.begin(), name.end(), std::begin(w.Name), ::tolower);
-            wnd.push_back(w);
+        auto name = candidates.empty() ? std::string() : std::move(candidates.front());
+        if (name.size() > sizeof(w.Name) - 1) {
+            name.resize(sizeof(w.Name) - 1);
         }
 
-        std::vector<Window> GetWindows() {
-            auto* display = XOpenDisplay(NULL);
-            Atom a = XInternAtom(display, "_NET_CLIENT_LIST", true);
-            Atom actualType;
+        std::transform(name.begin(), name.end(), std::begin(w.Name), ::tolower);
+        wnd.push_back(w);
+    }
 
-            int format;
-            unsigned long numItems, bytesAfter;
-            unsigned char* data = 0;
-            int status = XGetWindowProperty(display,
-                                            XDefaultRootWindow(display),
-                                            a,
-                                            0L,
-                                            (~0L),
-                                            false,
-                                            AnyPropertyType,
-                                            &actualType,
-                                            &format,
-                                            &numItems,
-                                            &bytesAfter,
-                                            &data);
-            std::vector<Window> ret;
-            if(status >= Success && numItems) {
-                auto array = (XID*)data;
-                for(decltype(numItems) k = 0; k < numItems; k++) {
-                    auto w = array[k];
-                    AddWindow(display, w, ret);
-                }
-                XFree(data);
+    std::vector<Window> GetWindows() {
+        auto* display = XOpenDisplay(NULL);
+        Atom a = XInternAtom(display, "_NET_CLIENT_LIST", true);
+        Atom actualType;
+
+        int format;
+        unsigned long numItems, bytesAfter;
+        unsigned char* data = 0;
+        int status = XGetWindowProperty(display,
+                                        XDefaultRootWindow(display),
+                                        a,
+                                        0L,
+                                        (~0L),
+                                        false,
+                                        AnyPropertyType,
+                                        &actualType,
+                                        &format,
+                                        &numItems,
+                                        &bytesAfter,
+                                        &data);
+        std::vector<Window> ret;
+        if(status >= Success && numItems) {
+            auto array = (XID*)data;
+            for(decltype(numItems) k = 0; k < numItems; k++) {
+                auto w = array[k];
+                AddWindow(display, w, ret);
             }
-            XCloseDisplay(display);
-            return ret;
+            XFree(data);
         }
+        XCloseDisplay(display);
+        return ret;
     }
 }
+
