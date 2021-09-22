@@ -1,4 +1,4 @@
-#include "internal/APCommon.h"
+#include "internal/EnviCommon.h"
 #include "internal/ThreadManager.h"
 #include "linux/x11FrameProcessor.h"
 

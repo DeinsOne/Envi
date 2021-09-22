@@ -1,5 +1,5 @@
 #include "Envi.h"
-#include "internal/APCommon.h"
+#include "internal/EnviCommon.h"
 #include <atomic>
 #include <thread>
 #include <X11/Xlib.h>

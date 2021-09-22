@@ -5,8 +5,8 @@ Cross platform c++ library for interaction with window environment. Window captu
 Goal of this project is to build easy emendable cross platform library to interact with graphical interface from c++.
 
  - [ ] Window capturing
-    - [ ] Linux window capturing
-    - [ ] Windows window capturing
+    - [x] Linux window capturing
+    - [x] Windows window capturing
  - [ ] Inputs
     - [ ] Mouse buttons
     - [ ] Mouse movement

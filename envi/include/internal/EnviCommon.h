@@ -114,4 +114,9 @@ namespace Envi {
         }
     }
 
+    template<class F, class T>
+    void ProcessFrameChanged(const F& data, T& base, Envi::Window& window ) {
+        data.OnFrameChanged(window );
+    }
+
 };

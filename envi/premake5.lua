@@ -15,7 +15,7 @@ project 'envi'
 
     files {
         'src/Envi.cpp',
-        'src/APCommon.cpp',
+        'src/EnviCommon.cpp',
         'src/ThreadManager.cpp'
     }
 

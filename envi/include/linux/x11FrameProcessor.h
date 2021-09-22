@@ -1,5 +1,5 @@
 #pragma once
-#include "internal/APCommon.h"
+#include "internal/EnviCommon.h"
 #include <memory>
 #include <X11/Xlib.h>
 #include <sys/shm.h>

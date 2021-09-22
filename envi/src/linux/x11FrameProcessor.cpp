@@ -1,5 +1,5 @@
 #include "linux/x11FrameProcessor.h"
-#include "internal/APCommon.h"
+#include "internal/EnviCommon.h"
 #include <X11/Xutil.h> 
 
 Envi::X11FrameProcessor::~X11FrameProcessor() {
@@ -57,7 +57,7 @@ Envi::DUPL_RETURN Envi::X11FrameProcessor::ProcessFrame(Window& selectedwindow){
 
     if(wndattr.width != Width(selectedwindow) || wndattr.height != Height(selectedwindow)) {
         // Call OnFrameChanged with old window and image
-        Data->WindowCaptureData.OnFrameChanged(selectedwindow );
+        ProcessFrameChanged(Data->WindowCaptureData, *this, selectedwindow );
 
         return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; //window size changed. This will rebuild everything
     }
