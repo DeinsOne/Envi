@@ -1,7 +1,7 @@
 
 project 'envi'
     language 'C++'
-    kind 'StaticLib'
+    kind 'SharedLib'
     cppdialect 'C++17'
     staticruntime 'on'
 

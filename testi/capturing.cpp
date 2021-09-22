@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     });
 
-    capCfg->OnFrameChanged([&](const Envi::Image& im, const Envi::Window& wnd) {
+    capCfg->OnFrameChanged([&](const Envi::Window& wnd) {
         printf("Frame changed %d : %dx%d \n", wnd.Handle, wnd.Size.x, wnd.Size.y );
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     });

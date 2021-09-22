@@ -23,7 +23,13 @@ project 'test'
 
     filter 'system:linux'
         links {
-            'pthread'
+            'pthread',
+            'SM',
+            'ICE',
+            'X11',
+            'Xmu',
+            'Xinerama',
+            'dl'
         }
 
     filter 'system:windows'

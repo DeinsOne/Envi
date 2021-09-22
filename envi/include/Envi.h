@@ -73,18 +73,10 @@ namespace Envi {
 
     ENVI_EXTERN std::vector<Window> GetWindows();
     ENVI_EXTERN std::vector<Monitor> GetMonitors();
-    // namespace C_API {
-    //     // GetWindows and GetMonitors expect a pre allocated buffer with the size as the second input parameter.
-    //     // The output of these functions is the actual total number of elements that the library had to return. So, applications should use this value
-    //     // in determining how to preallocate data.
-    //     ENVI_EXTERN int GetWindows(Window *windows, int windows_size);
-    //     ENVI_EXTERN int GetMonitors(Monitor *monitors, int monitors_size);
-    //     ENVI_EXTERN bool isMonitorInsideBounds(const Monitor *monitors, const int monitorsize, const Monitor *monitor);
-    // }; // namespace C_API
-    // ENVI_EXTERN bool isMonitorInsideBounds(const std::vector<Monitor> &monitors, const Monitor &monitor);
 
     // Callbecks
     typedef std::function<void(const Envi::Image &img, const Window &window)> WindowCaptureCallback;
+    typedef std::function<void(const Window &window)> WindowChangeCallback;
     typedef std::function<std::vector<Window>()> WindowCallback;
 
     class ICapturerManager {
@@ -96,17 +88,17 @@ namespace Envi {
 
     };
 
-    template <typename T>
+    template <typename T, typename C>
     class ICaptureConfiguration {
         public:
-            virtual std::shared_ptr<ICaptureConfiguration<T>> OnNewFrame(const T &cb) = 0;
+            virtual std::shared_ptr<ICaptureConfiguration<T, C>> OnNewFrame(const T &cb) = 0;
 
-            virtual std::shared_ptr<ICaptureConfiguration<T>> OnFrameChanged(const T &cb) = 0;
+            virtual std::shared_ptr<ICaptureConfiguration<T, C>> OnFrameChanged(const C &cb) = 0;
 
             virtual std::shared_ptr<ICapturerManager> startCapturing() = 0;
     };
 
-    ENVI_EXTERN std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback>> CreateWindowCaptureConfiguration(const WindowCallback &windowstocapture);
+    ENVI_EXTERN std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> CreateWindowCaptureConfiguration(const WindowCallback &windowstocapture);
 
     class Timer {
         private:

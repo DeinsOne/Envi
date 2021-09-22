@@ -121,20 +121,8 @@ namespace Envi {
         selectedwindow.Position.y = windowrect.ClientRect.top;
 
         if (!IsWindow(SelectedWindow) || selectedwindow.Size.x != Width(ret) || selectedwindow.Size.y != Height(ret)) {
-            Envi::ImageRect imageract;
-            imageract.left = 0;
-            imageract.top = 0;
-            imageract.bottom = Height(PreviousWnd);
-            imageract.right = Width(PreviousWnd);
-
-            const auto sizeofimgbgra = static_cast<int>(sizeof(ImageBGRA));
-            const auto startimgsrc = reinterpret_cast<const ImageBGRA *>((unsigned char*)NewImageBuffer.get());
-            auto dstrowstride = sizeofimgbgra * Width(PreviousWnd);
-
-            auto wholeimg = CreateImage(imageract, Width(PreviousWnd)* sizeof(ImageBGRA), startimgsrc);
-
             // Call OnFrameChanged with old window and image
-            Data->WindowCaptureData.OnFrameChanged(wholeimg, PreviousWnd );
+            Data->WindowCaptureData.OnFrameChanged(selectedwindow );
 
             return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; // window size changed. This will rebuild everything
         }
@@ -188,7 +176,6 @@ namespace Envi {
         GetDIBits(MonitorDC.DC, CaptureBMP.Bitmap, 0, (UINT)Height(ret), NewImageBuffer.get(), (BITMAPINFO *)&bi, DIB_RGB_COLORS);
         SelectObject(CaptureDC.DC, originalBmp);
         ProcessCapture(Data->WindowCaptureData, *this, selectedwindow, NewImageBuffer.get(), Width(selectedwindow)* sizeof(ImageBGRA));
-        PreviousWnd = selectedwindow;
 
         return Ret;
     }

@@ -67,8 +67,8 @@ namespace Envi {
     // template <typename F, typename W>
     struct CaptureData {
         WindowCaptureCallback   OnNewFrame;
-        WindowCaptureCallback   OnFrameChanged;
-        WindowCallback          getThingsToWatch;
+        WindowChangeCallback   OnFrameChanged;
+        WindowCallback          GetThingsToWatch;
     };
 
     struct CommonData {

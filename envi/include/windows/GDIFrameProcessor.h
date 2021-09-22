@@ -26,8 +26,6 @@ namespace Envi {
             std::unique_ptr<unsigned char[]> ImageBuffer;
             int ImageBufferSize = 0;
 
-            Envi::Window PreviousWnd = {0};
-
         public: 
             void Pause() {}
             void Resume() {}

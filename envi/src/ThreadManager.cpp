@@ -7,7 +7,7 @@ void Envi::ThreadManager::Init(std::shared_ptr<Thread_Data> data) {
         _handlers.clear();
     }
 
-    auto things = data->WindowCaptureData.getThingsToWatch();
+    auto things = data->WindowCaptureData.GetThingsToWatch();
     _handlers.resize(things.size() );
 
     // Fill threads for every selected window
