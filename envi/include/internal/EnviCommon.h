@@ -67,8 +67,13 @@ namespace Envi {
     // template <typename F, typename W>
     struct CaptureData {
         WindowCaptureCallback   OnNewFrame;
-        WindowChangeCallback   OnFrameChanged;
+        WindowChangeCallback    OnFrameChanged;
         WindowCallback          GetThingsToWatch;
+
+        int                     Interval;
+        bool                    RecoverImages = false;
+        // Time when instance was initiated
+        std::chrono::high_resolution_clock::time_point TimeStarted;
     };
 
     struct CommonData {

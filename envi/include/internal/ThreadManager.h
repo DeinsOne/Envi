@@ -28,6 +28,8 @@ namespace Envi {
         }
 
         while (!data->CommonData_.terminateThreadsEvent) {
+            Envi::Timer tm(std::chrono::milliseconds(data->WindowCaptureData.Interval));
+
             ret = frameprocessor.ProcessFrame(wnd);
 
             if (ret != DUPL_RETURN_SUCCESS) {
@@ -42,6 +44,8 @@ namespace Envi {
                 }
                 return true;
             }
+
+            tm.wait();
         }
         return true;
     }

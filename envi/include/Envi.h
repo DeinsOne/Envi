@@ -95,6 +95,10 @@ namespace Envi {
 
             virtual std::shared_ptr<ICaptureConfiguration<T, C>> OnFrameChanged(const C &cb) = 0;
 
+            virtual std::shared_ptr<ICaptureConfiguration<T, C>> SetTickInterval(int milliseconds) = 0;
+
+            virtual std::shared_ptr<ICaptureConfiguration<T, C>> SetRecoverImages(bool recover = true) = 0;
+
             virtual std::shared_ptr<ICapturerManager> startCapturing() = 0;
     };
 

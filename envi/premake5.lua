@@ -33,6 +33,8 @@ project 'envi'
             'X11',
             'Xmu',
             'Xinerama',
+            'jpeg',
+            'stdc++fs',
             'dl'
         }
 

@@ -29,6 +29,7 @@ project 'test'
             'X11',
             'Xmu',
             'Xinerama',
+            'stdc++fs',
             'dl'
         }
 

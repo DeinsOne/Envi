@@ -88,6 +88,7 @@ namespace Envi {
 
                 });
 
+                _threadData->WindowCaptureData.TimeStarted = std::chrono::high_resolution_clock::now();
                 _threadData->CommonData_.terminateThreadsEvent = false;
                 _threadData->CommonData_.unexpectedErrorEvent = false;
                 _threadData->CommonData_.paused = false;
@@ -119,6 +120,16 @@ namespace Envi {
                 return std::make_shared<WindowCaptureConfiguration>(_impl);
             }
 
+            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> SetTickInterval(int milliseconds) override {
+                _impl->_threadData->WindowCaptureData.Interval = milliseconds;
+                return std::make_shared<WindowCaptureConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> SetRecoverImages(bool recover) {
+                _impl->_threadData->WindowCaptureData.RecoverImages = recover;
+                return std::make_shared<WindowCaptureConfiguration>(_impl);
+            }
+
             virtual std::shared_ptr<ICapturerManager> startCapturing() override {
                 _impl->start();
                 return _impl;
@@ -129,7 +140,7 @@ namespace Envi {
     std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> CreateWindowCaptureConfiguration(const WindowCallback &windowstocapture) {
         auto _impl = std::make_shared<WindowCaptureManager>();
         _impl->_threadData->WindowCaptureData.GetThingsToWatch = windowstocapture;
-        return std::make_shared<WindowCaptureConfiguration>(_impl);
+        return std::make_shared<WindowCaptureConfiguration>(_impl)->SetTickInterval(16);
     }
 
 };

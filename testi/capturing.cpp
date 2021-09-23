@@ -26,10 +26,10 @@ int main(int argc, char** argv) {
             // Full target name to find is: 'envinteraction : fish/test'
             return Envi::GetWindowsWithNameKeywords( { "envinteraction :", "fish", "test" } );
         }
-    );
+    )->SetTickInterval(20)->SetRecoverImages();
 
     capCfg->OnNewFrame([&](const Envi::Image& im, const Envi::Window& wnd) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        printf("New frame\n");
     });
 
     capCfg->OnFrameChanged([&](const Envi::Window& wnd) {
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     capCfg->startCapturing();
 
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     return 0;
 }

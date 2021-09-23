@@ -4,6 +4,7 @@
 #include <X11/Xlib.h>
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
+#include <mutex>
 
 namespace Envi {
 
@@ -14,6 +15,11 @@ namespace Envi {
             XID SelectedWindow = 0;
 		    XImage* XImage_ = nullptr;
 		    std::unique_ptr<XShmSegmentInfo> ShmInfo;
+
+            std::vector<std::string> Recovered;
+            uint RecoverThreads = 0;
+            std::mutex CapturingMutex;
+            void RecoverImage(Envi::Window& wnd);
 
         public:
             X11FrameProcessor() { }

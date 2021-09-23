@@ -50,7 +50,4 @@ namespace Envi {
         return ret;
     }
 
-    // TODO:
-    ENVI_EXTERN void SaveImage(const Envi::Image& im, std::string path);
-
 }
