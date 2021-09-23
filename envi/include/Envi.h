@@ -1,21 +1,21 @@
 #pragma once
 
 #if defined(WINDOWS) || defined(WIN32)
-#if defined(ENVI_DLL)
-#define ENVI_C_EXTERN extern "C" __declspec(dllexport)
-#define ENVI_EXTERN __declspec(dllexport)
+    #if defined(ENVI_DLL)
+        #define ENVI_C_EXTERN extern "C" __declspec(dllexport)
+        #define ENVI_EXTERN __declspec(dllexport)
+    #else
+        #define ENVI_C_EXTERN
+        #define ENVI_EXTERN
+    #endif
 #else
-#define ENVI_C_EXTERN
-#define ENVI_EXTERN
-#endif
-#else
-#if defined(ENVI_DLL)
-#define ENVI_C_EXTERN extern "C"
-#define ENVI_EXTERN
-#else
-#define ENVI_C_EXTERN
-#define ENVI_EXTERN
-#endif
+    #if defined(ENVI_DLL)
+        #define ENVI_C_EXTERN extern "C"
+        #define ENVI_EXTERN
+    #else
+        #define ENVI_C_EXTERN
+        #define ENVI_EXTERN
+    #endif
 #endif
 
 #define ENVI_PROPERTY_MAX_LENGTH 512
@@ -96,12 +96,12 @@ namespace Envi {
 
     };
 
-    template <typename CALLBACK>
+    template <typename T>
     class ICaptureConfiguration {
         public:
-            virtual std::shared_ptr<ICaptureConfiguration<CALLBACK>> OnNewFrame(const CALLBACK &cb) = 0;
+            virtual std::shared_ptr<ICaptureConfiguration<T>> OnNewFrame(const T &cb) = 0;
 
-            virtual std::shared_ptr<ICaptureConfiguration<CALLBACK>> OnFrameChanged(const CALLBACK &cb) = 0;
+            virtual std::shared_ptr<ICaptureConfiguration<T>> OnFrameChanged(const T &cb) = 0;
 
             virtual std::shared_ptr<ICapturerManager> startCapturing() = 0;
     };

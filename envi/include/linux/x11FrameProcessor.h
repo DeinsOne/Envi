@@ -22,7 +22,7 @@ namespace Envi {
             void Pause() {}
             void Resume() {}
 
-            DUPL_RETURN Init(std::shared_ptr<Thread_Data> data, const Window& selectedwindow);
+            virtual DUPL_RETURN Init(std::shared_ptr<Thread_Data> data, const Window& selectedwindow) override;
             DUPL_RETURN ProcessFrame(Window& selectedwindow);
 
     };

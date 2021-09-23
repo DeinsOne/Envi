@@ -90,6 +90,7 @@ namespace Envi {
     class BaseFrameProcessor {
         public:
             std::shared_ptr<Thread_Data> Data;
+            virtual DUPL_RETURN Init(std::shared_ptr<Thread_Data> data, const Window& selectedwindow) = 0;
     };
 
 

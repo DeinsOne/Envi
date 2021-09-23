@@ -1,7 +1,7 @@
 
 project 'envi'
     language 'C++'
-    kind 'SharedLib'
+    kind 'StaticLib'
     cppdialect 'C++17'
     staticruntime 'on'
 
@@ -24,8 +24,7 @@ project 'envi'
             'src/linux/GetWindows.cpp',
             'src/linux/GetMonitors.cpp',
             'src/linux/x11FrameProcessor.cpp',
-            'src/linux/ThreadRunner.cpp',
-            'src/linux/x11FrameProcessor.cpp'
+            'src/linux/ThreadRunner.cpp'
         }
 
         links {
@@ -37,6 +36,18 @@ project 'envi'
             'dl'
         }
 
+    filter 'system:windows'
+        files {
+            'src/windows/GetWindows.cpp',
+            'src/windows/GetMonitors.cpp',
+            'src/windows/GDIFrameProcessor.cpp',
+            'src/windows/ThreadRunner.cpp'
+        }
+
+        links {
+            'dwmapi.lib'
+        }
+
     filter 'configurations:Debug'
 		runtime 'Debug'
 		symbols 'on'
@@ -44,3 +55,7 @@ project 'envi'
 	filter 'configurations:Release'
 		runtime 'Release'
 		optimize 'on'
+
+        defines {
+            'ENVI_DLL'
+        }

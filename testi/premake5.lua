@@ -26,6 +26,16 @@ project 'test'
             'pthread'
         }
 
-	runtime 'Debug'
-	symbols 'on'
+    filter 'system:windows'
+        links {
+            'dwmapi.dll'
+        }
+
+    filter 'configurations:Debug'
+		runtime 'Debug'
+		symbols 'on'
+
+	filter 'configurations:Release'
+		runtime 'Release'
+		optimize 'on'
 
