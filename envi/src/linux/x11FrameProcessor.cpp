@@ -3,67 +3,11 @@
 #include "internal/CaptureRecover.h"
 #include <X11/Xutil.h> 
 
-#include <jpeglib.h>
+#include "internal/CaptureRecover.h"
+#include "EnviUtils.h"
 
-std::vector<std::vector<unsigned char>> process_original(XImage * image) {
-    std::vector<std::vector<unsigned char>> image_data;
-    std::vector<unsigned char> image_data_row;
-    unsigned long red_mask = image->red_mask;
-    unsigned long green_mask = image->green_mask;
-    unsigned long blue_mask = image->blue_mask;
-
-    for (int y = 0; y < image->height; y++) {
-        for (int x = 0; x < image->width; x++) {
-            unsigned long pixel = XGetPixel(image, x, y);
-
-            unsigned char blue = pixel & blue_mask;
-            unsigned char green = (pixel & green_mask) >> 8;
-            unsigned char red = (pixel & red_mask) >> 16;
-
-            image_data_row.push_back(red);
-            image_data_row.push_back(green);
-            image_data_row.push_back(blue);
-        }
-        image_data.push_back(image_data_row);
-        image_data_row.clear();
-    }
-
-    return image_data;
-};
-
-bool save_to_jpeg(XImage* image, const char * path, int quality) {
-    auto image_data = process_original(image);
-
-    FILE *fp = NULL;
-    struct jpeg_compress_struct cinfo;
-    struct jpeg_error_mgr jerr;
-    JSAMPARRAY row;
-
-    fp = fopen(path, "wb");
-    if (!fp) {
-        // std::cout << "Failed to create file " << path << std::endl;
-        return false;
-    }
-    cinfo.err = jpeg_std_error(&jerr);
-    jpeg_create_compress(&cinfo);
-    jpeg_stdio_dest(&cinfo, fp);
-    cinfo.image_width = image->width;
-    cinfo.image_height = image->height;
-    cinfo.input_components = 3;
-    cinfo.in_color_space = JCS_RGB;
-    jpeg_set_defaults(&cinfo);
-    jpeg_set_quality (&cinfo, quality, true);
-    jpeg_start_compress(&cinfo, true);
-    for(std::vector<std::vector<unsigned char>>::size_type i = 0; i != image_data.size(); i++) {
-        row = (JSAMPARRAY) &image_data[i];
-        jpeg_write_scanlines(&cinfo, row, 1);
-    }
-    jpeg_finish_compress(&cinfo);
-    jpeg_destroy_compress(&cinfo);
-    if (fp != NULL) fclose(fp);
-
-    return true;
-};
+#define TJE_IMPLEMENTATION
+#include "internal/tiny_jpeg.h"
 
 Envi::X11FrameProcessor::~X11FrameProcessor() {
     if(ShmInfo) {
@@ -162,6 +106,9 @@ Envi::DUPL_RETURN Envi::X11FrameProcessor::ProcessFrame(Window& selectedwindow){
 void Envi::X11FrameProcessor::RecoverImage(Envi::Window& wnd) {
     // ENVI_RECOVER_THREADS_LIMIT
     auto save = [&]() {
+        RecoverThreads++;
+        std::chrono::duration<double> now = std::chrono::high_resolution_clock::now().time_since_epoch();
+
         XImage imageBackup;
         CapturingMutex.lock();
         imageBackup = *XImage_;
@@ -169,15 +116,23 @@ void Envi::X11FrameProcessor::RecoverImage(Envi::Window& wnd) {
         memcpy(imageBackup.data, XImage_->data, XImage_->width * XImage_->height * (XImage_->bitmap_unit / 8) );
         CapturingMutex.unlock();
 
-        RecoverThreads++;
-        std::chrono::duration<double> now = std::chrono::high_resolution_clock::now().time_since_epoch();
         std::chrono::duration<double> ini = Data->WindowCaptureData.TimeStarted.time_since_epoch();
         std::chrono::seconds::rep milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ini).count();
 
         std::string fnm = std::to_string(milliseconds) + ".jpg";
+        std::string dir = ENVI_RECOVER_DIR + std::to_string(wnd.Handle);
 
-        // TODO: save image
-        save_to_jpeg(&imageBackup, (ENVI_RECOVER_DIR + std::to_string(wnd.Handle) + "/" + fnm.c_str()).c_str(), 100);
+        ImageRect rect;
+        rect.left = 0;
+        rect.top = 0;
+        rect.bottom = Height(wnd);
+        rect.right = Width(wnd);
+
+        auto img = CreateImage(rect, imageBackup.bytes_per_line, reinterpret_cast<ImageBGRA *>(imageBackup.data) );
+        auto size = XImage_->width * XImage_->height * sizeof(Envi::ImageBGRA);
+        auto imgbuffer(std::make_unique<unsigned char[]>(size));
+        ExtractAndConvertToRGBA(img, imgbuffer.get(), size);
+        tje_encode_to_file((dir+"/"+fnm).c_str(), Width(img), Height(img), 4, (const unsigned char*)imgbuffer.get());
 
         free((void*)imageBackup.data);
         Recovered.push_back(fnm);

@@ -33,6 +33,13 @@ namespace Envi {
         return static_cast<int>(local_windows.size());
     }
 
+    const ImageBGRA* GotoNextRow(const Image &img, const ImageBGRA *current) {
+        auto c = reinterpret_cast<const unsigned char *>(current);
+        return reinterpret_cast<const ImageBGRA *>(c + img.RowStrideInBytes);
+    }
+    int RowStride(const Image &img) { return sizeof(ImageBGRA) * Width(img); }
+    const ImageBGRA* StartSrc(const Image &img) { return img.Data; }
+
     static bool ScreenCaptureManagerExists = false;
     class WindowCaptureManager : public ICapturerManager {
         public:

@@ -47,8 +47,6 @@ namespace Envi {
     ENVI_EXTERN int Width(const Window &mointor);
     ENVI_EXTERN void Height(Window &mointor, int h);
     ENVI_EXTERN void Width(Window &mointor, int w);
-    ENVI_EXTERN int Height(const Image &img);
-    ENVI_EXTERN int Width(const Image &img);
     ENVI_EXTERN int X(const Point &p);
     ENVI_EXTERN int Y(const Point &p);
     ENVI_EXTERN int Height(const ImageRect &rect);

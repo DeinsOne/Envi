@@ -1,6 +1,7 @@
 #include "windows/GDIFrameProcessor.h"
 #include <Dwmapi.h>
 
+#include "CaptureRecover.h"
 
 namespace Envi {
 
@@ -23,6 +24,11 @@ namespace Envi {
         }
 
         Data = data;
+
+        if (Data->WindowCaptureData.RecoverImages) {
+            Envi::InitRecoverDir(selectedwindow);
+        }
+
         return Ret;
     }
 
@@ -175,8 +181,56 @@ namespace Envi {
         bi.biSizeImage = ((Width(ret) * bi.biBitCount + 31) / (sizeof(ImageBGRA) * 8)) * sizeof(ImageBGRA)  * Height(ret);
         GetDIBits(MonitorDC.DC, CaptureBMP.Bitmap, 0, (UINT)Height(ret), NewImageBuffer.get(), (BITMAPINFO *)&bi, DIB_RGB_COLORS);
         SelectObject(CaptureDC.DC, originalBmp);
+
+        if (Data->WindowCaptureData.RecoverImages) {
+            RecoverImage(selectedwindow);
+            UpdateRecoverDir(&Recovered, selectedwindow);
+        }
+
         ProcessCapture(Data->WindowCaptureData, *this, selectedwindow, NewImageBuffer.get(), Width(selectedwindow)* sizeof(ImageBGRA));
 
         return Ret;
     }
+
+    void GDIFrameProcessor::RecoverImage(Envi::Window& wnd) {
+        auto save = [&]() {
+            RecoverThreads++;
+            std::chrono::duration<double> now = std::chrono::high_resolution_clock::now().time_since_epoch();
+
+            auto size = Width(wnd) * Height(wnd) * sizeof(Envi::ImageBGRA);
+            auto imgbuffer1(std::make_unique<unsigned char[]>(size));
+            // CapturingMutex.lock();
+            memcpy(imgbuffer1.get(), NewImageBuffer.get(), Width(wnd) * Height(wnd) * size );
+            // CapturingMutex.unlock();
+
+            std::chrono::duration<double> ini = Data->WindowCaptureData.TimeStarted.time_since_epoch();
+            std::chrono::seconds::rep milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ini).count();
+
+            std::string fnm = std::to_string(milliseconds) + ".jpg";
+            std::string dir = ENVI_RECOVER_DIR + std::to_string(wnd.Handle);
+
+            ImageRect rect;
+            rect.left = 0;
+            rect.top = 0;
+            rect.bottom = Height(wnd);
+            rect.right = Width(wnd);
+
+            auto img = CreateImage(rect, Width(wnd) * sizeof(Envi::ImageBGRA), reinterpret_cast<ImageBGRA *>(imgbuffer1.get()) );
+            auto imgbuffer(std::make_unique<unsigned char[]>(size));
+            ExtractAndConvertToRGBA(img, imgbuffer1.get(), size);
+            tje_encode_to_file((dir+"/"+fnm).c_str(), Width(img), Height(img), 4, (const unsigned char*)imgbuffer.get());
+
+            Recovered.push_back(fnm);
+            RecoverThreads--;
+        };
+
+        std::thread sv(save);
+        if (RecoverThreads > ENVI_RECOVER_THREADS_LIMIT) {
+            sv.join();
+        }
+        else {
+            sv.detach();
+        }        
+    }
+
 }

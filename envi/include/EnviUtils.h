@@ -50,4 +50,22 @@ namespace Envi {
         return ret;
     }
 
+    void ExtractAndConvertToRGBA(const Envi::Image &img, unsigned char *dst, size_t dst_size) {
+        // assert(dst_size >= static_cast<size_t>(SL::Screen_Capture::Width(img) * SL::Screen_Capture::Height(img) * sizeof(SL::Screen_Capture::ImageBGRA)));
+        auto imgsrc = StartSrc(img);
+        auto imgdist = dst;
+        for (auto h = 0; h < Height(img); h++) {
+            auto startimgsrc = imgsrc;
+            for (auto w = 0; w < Width(img); w++) {
+                *imgdist++ = imgsrc->R;
+                *imgdist++ = imgsrc->G;
+                *imgdist++ = imgsrc->B;
+                *imgdist++ = 0; // alpha should be zero
+                imgsrc++;
+            }
+            imgsrc = Envi::GotoNextRow(img, startimgsrc);
+        }
+    }
+
+
 }

@@ -74,6 +74,11 @@ namespace Envi {
     ENVI_EXTERN std::vector<Window> GetWindows();
     ENVI_EXTERN std::vector<Monitor> GetMonitors();
 
+    ENVI_EXTERN int Height(const Image &img);
+    ENVI_EXTERN int Width(const Image &img);
+    ENVI_EXTERN const ImageBGRA* StartSrc(const Image &img);
+    ENVI_EXTERN const ImageBGRA* GotoNextRow(const Image &img, const ImageBGRA *current);
+
     // Callbecks
     typedef std::function<void(const Envi::Image &img, const Window &window)> WindowCaptureCallback;
     typedef std::function<void(const Window &window)> WindowChangeCallback;

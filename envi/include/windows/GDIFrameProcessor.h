@@ -26,6 +26,11 @@ namespace Envi {
             std::unique_ptr<unsigned char[]> ImageBuffer;
             int ImageBufferSize = 0;
 
+            std::vector<std::string> Recovered;
+            uint RecoverThreads = 0;
+            // std::mutex CapturingMutex;
+            void RecoverImage(Envi::Window& wnd);
+
         public: 
             void Pause() {}
             void Resume() {}

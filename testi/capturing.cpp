@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
             // Full target name to find is: 'envinteraction : fish/test'
             return Envi::GetWindowsWithNameKeywords( { "envinteraction :", "fish", "test" } );
         }
-    )->SetTickInterval(20)->SetRecoverImages();
+    )->SetTickInterval(30)->SetRecoverImages();
 
     capCfg->OnNewFrame([&](const Envi::Image& im, const Envi::Window& wnd) {
         printf("New frame\n");
