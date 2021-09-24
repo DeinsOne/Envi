@@ -8,8 +8,6 @@ namespace Envi {
     class ThreadManager {
         std::vector<std::thread> _handlers;
 
-        std::shared_ptr<std::atomic_bool> _terminateThreadsEvent;
-
         public:
             ThreadManager() { }
 
@@ -43,6 +41,10 @@ namespace Envi {
                     data->CommonData_.terminateThreadsEvent = true;
                 }
                 return true;
+            }
+
+            while (data->CommonData_.paused) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(30));
             }
 
             tm.wait();

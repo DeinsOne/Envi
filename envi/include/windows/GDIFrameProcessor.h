@@ -35,8 +35,6 @@ namespace Envi {
             void Pause() {}
             void Resume() {}
     
-            // DUPL_RETURN Init(std::shared_ptr<Thread_Data> data, const Monitor& monitor);
-            // DUPL_RETURN ProcessFrame(const Monitor& currentmonitorinfo);
             virtual DUPL_RETURN Init(std::shared_ptr<Thread_Data> data, const Window& selectedwindow) override;
             DUPL_RETURN ProcessFrame(Window& selectedwindow);
     };

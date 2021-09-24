@@ -84,9 +84,8 @@ namespace Envi {
                         }
 
                         // Pause detection
-                        if (_threadData->CommonData_.paused) {
+                        while (_threadData->CommonData_.paused) {
                             std::this_thread::sleep_for(std::chrono::milliseconds(30));
-                            continue;
                         }
 
                         // Process callbacks

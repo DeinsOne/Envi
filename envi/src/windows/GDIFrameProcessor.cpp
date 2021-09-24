@@ -222,6 +222,7 @@ namespace Envi {
             ExtractAndConvertToRGBA(img, imgbuffer.get(), size);
             free((void*)buffer);
             tje_encode_to_file((dir+"/"+fnm).c_str(), Width(img), Height(img), 4, (const unsigned char*)imgbuffer.get());
+            imgbuffer.release();
 
             Recovered.push_back(fnm);
             RecoverThreads--;

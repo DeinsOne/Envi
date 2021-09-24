@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
             // Full target name to find is: 'envinteraction : fish/test'
             return Envi::GetWindowsWithNameKeywords( { "visual studio", "code", "envi" } );
         }
-    )->SetTickInterval(20)->SetRecoverImages();
+    )->SetTickInterval(30)->SetRecoverImages();
 
     capCfg->OnNewFrame([&](const Envi::Image& im, const Envi::Window& wnd) {
         printf("New frame\n");
@@ -38,8 +38,7 @@ int main(int argc, char** argv) {
 
 
     printf("\n  START CAPTURING\n");
-    capCfg->startCapturing();
-
+    auto manager = capCfg->startCapturing();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
