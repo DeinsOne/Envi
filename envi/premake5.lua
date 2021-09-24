@@ -1,7 +1,7 @@
 
 project 'envi'
     language 'C++'
-    kind 'SharedLib'
+    kind 'StaticLib'
     cppdialect 'C++17'
     staticruntime 'on'
 
@@ -48,6 +48,10 @@ project 'envi'
 
         links {
             'dwmapi.lib'
+        }
+
+        defines {
+            '_CRT_SECURE_NO_WARNINGS'
         }
 
     filter 'configurations:Debug'

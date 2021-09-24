@@ -50,7 +50,7 @@ namespace Envi {
         return ret;
     }
 
-    void ExtractAndConvertToRGBA(const Envi::Image &img, unsigned char *dst, size_t dst_size) {
+    inline void ExtractAndConvertToRGBA(const Envi::Image &img, unsigned char *dst, size_t dst_size) {
         // assert(dst_size >= static_cast<size_t>(SL::Screen_Capture::Width(img) * SL::Screen_Capture::Height(img) * sizeof(SL::Screen_Capture::ImageBGRA)));
         auto imgsrc = StartSrc(img);
         auto imgdist = dst;

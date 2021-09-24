@@ -1,3 +1,4 @@
+#pragma once
 /**
  * tiny_jpeg.h
  *

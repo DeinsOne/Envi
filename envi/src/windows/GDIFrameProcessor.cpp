@@ -1,9 +1,19 @@
 #include "windows/GDIFrameProcessor.h"
 #include <Dwmapi.h>
 
-#include "CaptureRecover.h"
+#include "internal/CaptureRecover.h"
+#include "EnviUtils.h"
+
+#define TJE_IMPLEMENTATION
+#include "internal/tiny_jpeg.h"
 
 namespace Envi {
+
+    GDIFrameProcessor::~GDIFrameProcessor() {
+        CapturingMutex.lock();
+        free((void*)ImageData);
+        CapturingMutex.unlock();
+    }
 
     DUPL_RETURN GDIFrameProcessor::Init(std::shared_ptr<Thread_Data> data, const Window &selectedwindow) {
         // this is needed to fix AERO BitBlt capturing issues
@@ -13,7 +23,6 @@ namespace Envi {
         SystemParametersInfo(SPI_SETANIMATION, sizeof(str), (void *)&str, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
         SelectedWindow = reinterpret_cast<HWND>(selectedwindow.Handle);
         auto Ret = DUPL_RETURN_SUCCESS;
-        NewImageBuffer = std::make_unique<unsigned char[]>(ImageBufferSize);
         MonitorDC.DC = GetWindowDC(SelectedWindow);
         CaptureDC.DC = CreateCompatibleDC(MonitorDC.DC);
 
@@ -150,25 +159,16 @@ namespace Envi {
             return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; // likely a permission issue
         }
 
-        //std::vector<HWND> childrenToComposite = CollectWindowsToComposite((HWND)selectedwindow.Handle);
-        //
-        //// list is ordered topmost to bottommost, so we visit them in reverse order to let painter's algorithm work
-        //for ( auto child = childrenToComposite.rbegin(); child != childrenToComposite.rend(); child++ ) {
-        //    auto childRect = SL::Screen_Capture::GetWindowRect( *child );
+        CapturingMutex.lock();
+        size_t size = Width(selectedwindow) * Height(selectedwindow) * sizeof(ImageBGRA);
+        if (!ImageData) {
+            ImageData = (unsigned char*)malloc(size);
+        }
+        else {
+            ImageData = (unsigned char*)realloc((void*)ImageData, size);
+        }
+        CapturingMutex.unlock();
 
-        //    HDC srcDC = GetWindowDC(*child);
-
-        //    // if this fails we just won't composite this window, so continue with the others to get what we can
-        //    BOOL childBlitSuccess = BitBlt(CaptureDC.DC, childRect.ClientRect.left - windowrect.ClientRect.left, childRect.ClientRect.top - windowrect.ClientRect.top,
-        //           childRect.ClientRect.right - childRect.ClientRect.left, childRect.ClientRect.bottom - childRect.ClientRect.top, 
-        //           srcDC, 0, 0,
-        //           SRCCOPY | CAPTUREBLT);
-        //    if ( !childBlitSuccess ) {
-        //        DWORD err = GetLastError();
-        //    }
-
-        //    ReleaseDC(*child, srcDC);
-        //}
 
         BITMAPINFOHEADER bi;
         memset(&bi, 0, sizeof(bi)); 
@@ -179,15 +179,17 @@ namespace Envi {
         bi.biBitCount = sizeof(ImageBGRA) * 8; // always 32 bits damnit!!!
         bi.biCompression = BI_RGB;
         bi.biSizeImage = ((Width(ret) * bi.biBitCount + 31) / (sizeof(ImageBGRA) * 8)) * sizeof(ImageBGRA)  * Height(ret);
-        GetDIBits(MonitorDC.DC, CaptureBMP.Bitmap, 0, (UINT)Height(ret), NewImageBuffer.get(), (BITMAPINFO *)&bi, DIB_RGB_COLORS);
+        CapturingMutex.lock();
+        GetDIBits(MonitorDC.DC, CaptureBMP.Bitmap, 0, (UINT)Height(ret), ImageData, (BITMAPINFO *)&bi, DIB_RGB_COLORS);
         SelectObject(CaptureDC.DC, originalBmp);
+        CapturingMutex.unlock();
 
         if (Data->WindowCaptureData.RecoverImages) {
             RecoverImage(selectedwindow);
             UpdateRecoverDir(&Recovered, selectedwindow);
         }
 
-        ProcessCapture(Data->WindowCaptureData, *this, selectedwindow, NewImageBuffer.get(), Width(selectedwindow)* sizeof(ImageBGRA));
+        ProcessCapture(Data->WindowCaptureData, *this, selectedwindow, ImageData, Width(selectedwindow) * sizeof(ImageBGRA));
 
         return Ret;
     }
@@ -195,13 +197,13 @@ namespace Envi {
     void GDIFrameProcessor::RecoverImage(Envi::Window& wnd) {
         auto save = [&]() {
             RecoverThreads++;
+            CapturingMutex.lock();
             std::chrono::duration<double> now = std::chrono::high_resolution_clock::now().time_since_epoch();
 
-            auto size = Width(wnd) * Height(wnd) * sizeof(Envi::ImageBGRA);
-            auto imgbuffer1(std::make_unique<unsigned char[]>(size));
-            // CapturingMutex.lock();
-            memcpy(imgbuffer1.get(), NewImageBuffer.get(), Width(wnd) * Height(wnd) * size );
-            // CapturingMutex.unlock();
+            auto size = Width(wnd) * Height(wnd) * sizeof(ImageBGRA);
+            unsigned char* buffer = (unsigned char*)malloc(size);
+            memcpy(buffer, ImageData, size );
+            CapturingMutex.unlock();
 
             std::chrono::duration<double> ini = Data->WindowCaptureData.TimeStarted.time_since_epoch();
             std::chrono::seconds::rep milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ini).count();
@@ -215,9 +217,10 @@ namespace Envi {
             rect.bottom = Height(wnd);
             rect.right = Width(wnd);
 
-            auto img = CreateImage(rect, Width(wnd) * sizeof(Envi::ImageBGRA), reinterpret_cast<ImageBGRA *>(imgbuffer1.get()) );
+            auto img = CreateImage(rect, Width(wnd) * sizeof(Envi::ImageBGRA), reinterpret_cast<const Envi::ImageBGRA*>(buffer) );
             auto imgbuffer(std::make_unique<unsigned char[]>(size));
-            ExtractAndConvertToRGBA(img, imgbuffer1.get(), size);
+            ExtractAndConvertToRGBA(img, imgbuffer.get(), size);
+            free((void*)buffer);
             tje_encode_to_file((dir+"/"+fnm).c_str(), Width(img), Height(img), 4, (const unsigned char*)imgbuffer.get());
 
             Recovered.push_back(fnm);
@@ -230,7 +233,7 @@ namespace Envi {
         }
         else {
             sv.detach();
-        }        
+        }
     }
 
 }

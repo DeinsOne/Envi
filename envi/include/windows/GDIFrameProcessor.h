@@ -3,6 +3,7 @@
 #include "internal/EnviCommon.h"
 #include "GDIHelpers.h"
 #include <memory>
+#include <mutex>
 
 #include <d3d11.h>
 #include <dxgi1_2.h>
@@ -17,21 +18,20 @@ namespace Envi {
             HDCWrapper MonitorDC;
             HDCWrapper CaptureDC;
             HBITMAPWrapper CaptureBMP;
-            // Monitor SelectedMonitor;
             HWND SelectedWindow;
-            std::unique_ptr<unsigned char[]> NewImageBuffer;
 
             std::shared_ptr<Thread_Data> Data;
 
-            std::unique_ptr<unsigned char[]> ImageBuffer;
-            int ImageBufferSize = 0;
+            unsigned char* ImageData = nullptr;
 
             std::vector<std::string> Recovered;
-            uint RecoverThreads = 0;
-            // std::mutex CapturingMutex;
+            int RecoverThreads = 0;
+            std::mutex CapturingMutex;
             void RecoverImage(Envi::Window& wnd);
 
-        public: 
+        public:
+            ~GDIFrameProcessor();
+
             void Pause() {}
             void Resume() {}
     
