@@ -10,9 +10,9 @@
 namespace Envi {
 
     GDIFrameProcessor::~GDIFrameProcessor() {
-        CapturingMutex.lock();
-        free((void*)ImageData);
-        CapturingMutex.unlock();
+        std::lock_guard<std::mutex> mtx(CapturingMutex);
+        if (ImageData)
+            free((void*)ImageData);
     }
 
     DUPL_RETURN GDIFrameProcessor::Init(std::shared_ptr<Thread_Data> data, const Window &selectedwindow) {
@@ -159,17 +159,6 @@ namespace Envi {
             return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; // likely a permission issue
         }
 
-        CapturingMutex.lock();
-        size_t size = Width(selectedwindow) * Height(selectedwindow) * sizeof(ImageBGRA);
-        if (!ImageData) {
-            ImageData = (unsigned char*)malloc(size);
-        }
-        else {
-            ImageData = (unsigned char*)realloc((void*)ImageData, size);
-        }
-        CapturingMutex.unlock();
-
-
         BITMAPINFOHEADER bi;
         memset(&bi, 0, sizeof(bi)); 
         bi.biSize = sizeof(BITMAPINFOHEADER); 
@@ -179,7 +168,14 @@ namespace Envi {
         bi.biBitCount = sizeof(ImageBGRA) * 8; // always 32 bits damnit!!!
         bi.biCompression = BI_RGB;
         bi.biSizeImage = ((Width(ret) * bi.biBitCount + 31) / (sizeof(ImageBGRA) * 8)) * sizeof(ImageBGRA)  * Height(ret);
+
         CapturingMutex.lock();
+        if (ImageData) {
+            free((void*)ImageData);
+        }
+        size_t size = Width(selectedwindow) * Height(selectedwindow) * sizeof(ImageBGRA);
+        ImageData = (unsigned char*)malloc(size);
+
         GetDIBits(MonitorDC.DC, CaptureBMP.Bitmap, 0, (UINT)Height(ret), ImageData, (BITMAPINFO *)&bi, DIB_RGB_COLORS);
         SelectObject(CaptureDC.DC, originalBmp);
         CapturingMutex.unlock();
