@@ -10,7 +10,10 @@
 namespace Envi {
 
     GDIFrameProcessor::~GDIFrameProcessor() {
-        std::lock_guard<std::mutex> mtx(CapturingMutex);
+        while (RecoverThreads > 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+
         if (ImageData)
             free((void*)ImageData);
     }

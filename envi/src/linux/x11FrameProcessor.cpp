@@ -10,6 +10,10 @@
 #include "internal/tiny_jpeg.h"
 
 Envi::X11FrameProcessor::~X11FrameProcessor() {
+    while (RecoverThreads > 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+
     if(ShmInfo) {
         shmdt(ShmInfo->shmaddr);
         shmctl(ShmInfo->shmid, IPC_RMID, 0);
