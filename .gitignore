@@ -2,6 +2,7 @@
 /*.vs
 /bin
 /*.exe
+/tmp
 
 *Makefile
 *.makefile
