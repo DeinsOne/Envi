@@ -1,6 +1,7 @@
 #include <cstdio>
 
 #include "Envi.h"
+#include "EnviUtils.h"
 
 
 int main(int argc, char** argv) {
@@ -22,35 +23,22 @@ int main(int argc, char** argv) {
 
     auto capCfg = Envi::CreateWindowCaptureConfiguration(
         [&]() {
-            auto windows = Envi::GetWindows();
-            decltype(windows) ret;
-
-            for (auto i : windows) {
-                if (std::string(i.Name).find("envinteraction :") != std::string::npos ) {
-                    ret.push_back(i);
-                }
-                else if (std::string(i.Name).find("firefox") != std::string::npos) {
-                    ret.push_back(i);
-                }
-            }
-
-            return ret;
+            // Full target name to find is: 'envinteraction : fish/test'
+            return Envi::GetWindowsWithNameKeywords( { "visual studio", "code", "envi" } );
         }
-    )->OnNewFrame([&](const Envi::Image& im, const Envi::Window& wnd) {
-        printf("New frame %d : %dx%d\n", wnd.Handle, wnd.Size.x, wnd.Size.y );
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    )->SetTickInterval(30)->SetRecoverImages();
+
+    capCfg->OnNewFrame([&](const Envi::Image& im, const Envi::Window& wnd) {
+        printf("New frame\n");
     });
 
-    capCfg->OnFrameChanged([&](const Envi::Image& im, const Envi::Window& wnd) {
+    capCfg->OnFrameChanged([&](const Envi::Window& wnd) {
         printf("Frame changed %d : %dx%d \n", wnd.Handle, wnd.Size.x, wnd.Size.y );
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     });
+
 
     printf("\n  START CAPTURING\n");
-
-
-    capCfg->startCapturing();
-
+    auto manager = capCfg->startCapturing();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 

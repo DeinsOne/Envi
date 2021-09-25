@@ -1,5 +1,5 @@
 #include "Envi.h"
-#include "internal/APCommon.h"
+#include "internal/EnviCommon.h"
 #include <X11/Xlib.h>
 #include <X11/extensions/Xinerama.h>
 #include <dlfcn.h>

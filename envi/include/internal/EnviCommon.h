@@ -47,8 +47,6 @@ namespace Envi {
     ENVI_EXTERN int Width(const Window &mointor);
     ENVI_EXTERN void Height(Window &mointor, int h);
     ENVI_EXTERN void Width(Window &mointor, int w);
-    ENVI_EXTERN int Height(const Image &img);
-    ENVI_EXTERN int Width(const Image &img);
     ENVI_EXTERN int X(const Point &p);
     ENVI_EXTERN int Y(const Point &p);
     ENVI_EXTERN int Height(const ImageRect &rect);
@@ -67,8 +65,13 @@ namespace Envi {
     // template <typename F, typename W>
     struct CaptureData {
         WindowCaptureCallback   OnNewFrame;
-        WindowCaptureCallback   OnFrameChanged;
-        WindowCallback          getThingsToWatch;
+        WindowChangeCallback    OnFrameChanged;
+        WindowCallback          GetThingsToWatch;
+
+        int                     Interval;
+        bool                    RecoverImages = false;
+        // Time when instance was initiated
+        std::chrono::high_resolution_clock::time_point TimeStarted;
     };
 
     struct CommonData {
@@ -90,6 +93,7 @@ namespace Envi {
     class BaseFrameProcessor {
         public:
             std::shared_ptr<Thread_Data> Data;
+            virtual DUPL_RETURN Init(std::shared_ptr<Thread_Data> data, const Window& selectedwindow) = 0;
     };
 
 
@@ -111,6 +115,11 @@ namespace Envi {
             wholeimg.isContiguous = dstrowstride == srcrowstride;
             data.OnNewFrame(wholeimg, window);
         }
+    }
+
+    template<class F, class T>
+    void ProcessFrameChanged(const F& data, T& base, Envi::Window& window ) {
+        data.OnFrameChanged(window );
     }
 
 };

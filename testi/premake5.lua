@@ -23,9 +23,26 @@ project 'test'
 
     filter 'system:linux'
         links {
-            'pthread'
+            'pthread',
+            'SM',
+            'ICE',
+            'X11',
+            'Xmu',
+            'Xinerama',
+            'stdc++fs',
+            'dl'
         }
 
-	runtime 'Debug'
-	symbols 'on'
+    filter 'system:windows'
+        links {
+            'dwmapi.dll'
+        }
+
+    filter 'configurations:Debug'
+		runtime 'Debug'
+		symbols 'on'
+
+	filter 'configurations:Release'
+		runtime 'Release'
+		optimize 'on'
 

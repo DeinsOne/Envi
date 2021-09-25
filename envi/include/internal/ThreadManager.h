@@ -1,14 +1,12 @@
 #pragma once
 #include "Envi.h"
-#include "APCommon.h"
+#include "EnviCommon.h"
 #include <thread>
 
 namespace Envi {
 
     class ThreadManager {
         std::vector<std::thread> _handlers;
-
-        std::shared_ptr<std::atomic_bool> _terminateThreadsEvent;
 
         public:
             ThreadManager() { }
@@ -28,13 +26,15 @@ namespace Envi {
         }
 
         while (!data->CommonData_.terminateThreadsEvent) {
+            Envi::Timer tm(std::chrono::milliseconds(data->WindowCaptureData.Interval));
+
             ret = frameprocessor.ProcessFrame(wnd);
 
             if (ret != DUPL_RETURN_SUCCESS) {
                 if (ret == DUPL_RETURN_ERROR_EXPECTED) {
                     // The system is in a transition state so request the duplication be restarted
                     data->CommonData_.expectedErrorEvent = true;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+                    break;
                 }
                 else {
                     data->CommonData_.unexpectedErrorEvent = true;
@@ -42,6 +42,12 @@ namespace Envi {
                 }
                 return true;
             }
+
+            while (data->CommonData_.paused) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            }
+
+            tm.wait();
         }
         return true;
     }

@@ -1,6 +1,6 @@
 
 #include "Envi.h"
-#include "internal/APCommon.h"
+#include "internal/EnviCommon.h"
 #include "internal/ThreadManager.h"
 
 #include <algorithm>
@@ -33,42 +33,12 @@ namespace Envi {
         return static_cast<int>(local_windows.size());
     }
 
-    // template <class MONITORTPE>
-    // bool isMonitorInsideBounds(MONITORTPE monitors, const Monitor &monitor) {
-    //     auto totalwidth = 0;
-    //     for (auto &m : monitors) {
-    //         totalwidth += Width(m);
-    //     }
-    //     // if the monitor doesnt exist any more!
-    //     if (std::find_if(begin(monitors), end(monitors), [&](auto &m)
-    //                      { return m.Id == monitor.Id; }) == end(monitors))
-    //     {
-    //         return false;
-    //     } // if the area to capture is outside the dimensions of the desktop!!
-    //     auto &realmonitor = monitors[Index(monitor)];
-    //     if (Height(realmonitor) < Height(monitor) ||          // monitor height check
-    //         totalwidth < Width(monitor) + OffsetX(monitor) || // total width check
-    //         Width(monitor) > Width(realmonitor))              // regular width check
-
-    //     {
-    //         return false;
-    //     } // if the entire screen is capture and the offsets changed, get out and rebuild
-    //     else if (Height(realmonitor) == Height(monitor) && Width(realmonitor) == Width(monitor) &&
-    //              (OffsetX(realmonitor) != OffsetX(monitor) || OffsetY(realmonitor) != OffsetY(monitor)))
-    //     {
-    //         return false;
-    //     }
-    //     return true;
-    // }
-
-    // bool isMonitorInsideBounds(const std::vector<Monitor> &monitors, const Monitor &monitor) {
-    //     return isMonitorInsideBounds(monitors, monitor);
-    // }
-    // namespace C_API {
-    //     bool isMonitorInsideBounds(const Monitor *monitors, const int monitorsize, const Monitor *monitor) {
-    //         return isMonitorInsideBounds(std::vector<Monitor>(monitors, monitors + monitorsize), *monitor);
-    //     }
-    // }; // namespace C_API
+    const ImageBGRA* GotoNextRow(const Image &img, const ImageBGRA *current) {
+        auto c = reinterpret_cast<const unsigned char *>(current);
+        return reinterpret_cast<const ImageBGRA *>(c + img.RowStrideInBytes);
+    }
+    int RowStride(const Image &img) { return sizeof(ImageBGRA) * Width(img); }
+    const ImageBGRA* StartSrc(const Image &img) { return img.Data; }
 
     static bool ScreenCaptureManagerExists = false;
     class WindowCaptureManager : public ICapturerManager {
@@ -114,9 +84,8 @@ namespace Envi {
                         }
 
                         // Pause detection
-                        if (_threadData->CommonData_.paused) {
+                        while (_threadData->CommonData_.paused) {
                             std::this_thread::sleep_for(std::chrono::milliseconds(30));
-                            continue;
                         }
 
                         // Process callbacks
@@ -125,6 +94,7 @@ namespace Envi {
 
                 });
 
+                _threadData->WindowCaptureData.TimeStarted = std::chrono::high_resolution_clock::now();
                 _threadData->CommonData_.terminateThreadsEvent = false;
                 _threadData->CommonData_.unexpectedErrorEvent = false;
                 _threadData->CommonData_.paused = false;
@@ -137,28 +107,32 @@ namespace Envi {
 
             virtual void Resume() override { _threadData->CommonData_.paused = false; }
 
-            // FIXME:
-            // virtual std::vector<Image> GetImages() override {
-            //     std::vector<Image> igs;
-            //     return igs;
-            // }
-
     };
 
-    class WindowCaptureConfiguration : public ICaptureConfiguration<WindowCaptureCallback> {
+    class WindowCaptureConfiguration : public ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback> {
         private:
             std::shared_ptr<WindowCaptureManager> _impl;
 
         public:
             WindowCaptureConfiguration(const std::shared_ptr<WindowCaptureManager> &impl) : _impl(impl) {}
 
-            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback>> OnNewFrame(const WindowCaptureCallback &cb) override {
+            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> OnNewFrame(const WindowCaptureCallback &cb) override {
                 _impl->_threadData->WindowCaptureData.OnNewFrame = cb;
                 return std::make_shared<WindowCaptureConfiguration>(_impl);
             }
 
-            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback>> OnFrameChanged(const WindowCaptureCallback &cb) override {
+            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> OnFrameChanged(const WindowChangeCallback &cb) override {
                 _impl->_threadData->WindowCaptureData.OnFrameChanged = cb;
+                return std::make_shared<WindowCaptureConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> SetTickInterval(int milliseconds) override {
+                _impl->_threadData->WindowCaptureData.Interval = milliseconds;
+                return std::make_shared<WindowCaptureConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> SetRecoverImages(bool recover) {
+                _impl->_threadData->WindowCaptureData.RecoverImages = recover;
                 return std::make_shared<WindowCaptureConfiguration>(_impl);
             }
 
@@ -169,10 +143,10 @@ namespace Envi {
     };
 
 
-    std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback>> CreateWindowCaptureConfiguration(const WindowCallback &windowstocapture) {
+    std::shared_ptr<ICaptureConfiguration<WindowCaptureCallback, WindowChangeCallback>> CreateWindowCaptureConfiguration(const WindowCallback &windowstocapture) {
         auto _impl = std::make_shared<WindowCaptureManager>();
-        _impl->_threadData->WindowCaptureData.getThingsToWatch = windowstocapture;
-        return std::make_shared<WindowCaptureConfiguration>(_impl);
+        _impl->_threadData->WindowCaptureData.GetThingsToWatch = windowstocapture;
+        return std::make_shared<WindowCaptureConfiguration>(_impl)->SetTickInterval(16);
     }
 
 };
