@@ -34,7 +34,6 @@ namespace Envi {
                 if (ret == DUPL_RETURN_ERROR_EXPECTED) {
                     // The system is in a transition state so request the duplication be restarted
                     data->CommonData_.expectedErrorEvent = true;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(30));
                     break;
                 }
                 else {
