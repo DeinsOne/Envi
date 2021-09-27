@@ -20,8 +20,8 @@ namespace Envi {
 
             std::queue<std::function<void()>> _queue;
 
-            bool _paused;
-            bool _terminateManager;
+            bool _paused = false;
+            bool _terminateManager = false;
 
             using Ms = std::chrono::milliseconds;
 
@@ -106,15 +106,18 @@ namespace Envi {
             void start() {
                 _thread = std::thread([&]() {
                     while (!_terminateManager) {
+                        // printf("Come in tick\n");
                         while (_paused) {
                             std::this_thread::sleep_for(std::chrono::milliseconds(4));
                         }
 
                         if (_queue.size()) {
                             _mutex.lock();
-                            _queue.front()();
+                            auto a = _queue.front();
                             _queue.pop();
                             _mutex.unlock();
+
+                            a();
                         }
                     }
                 });

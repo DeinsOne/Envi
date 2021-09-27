@@ -47,7 +47,7 @@ project 'envi'
             'src/windows/GetMonitors.cpp',
             'src/windows/GDIFrameProcessor.cpp',
             'src/windows/ThreadRunner.cpp',
-            'envi/src/windows/GDIInput.cpp'
+            'src/windows/GDIInput.cpp'
         }
 
         links {

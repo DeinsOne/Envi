@@ -12,6 +12,7 @@ namespace Envi {
 
     template<>
     void SendInput<KeyEvent, std::chrono::milliseconds>(const KeyEvent& e, const std::chrono::milliseconds& time) {
+        Envi::Timer tm(time);
         INPUT k = {0};
         k.type = INPUT_KEYBOARD;
         k.ki.dwFlags = e.Pressed ? 0 : KEYEVENTF_KEYUP;
@@ -20,10 +21,12 @@ namespace Envi {
             return; // no good!
         }
         SendInput(1, &k, sizeof(INPUT));
+        tm.wait();
     }
 
     template<>
     void SendInput<MouseButtonEvent, std::chrono::milliseconds>(const MouseButtonEvent &e, const std::chrono::milliseconds& time) {
+        Envi::Timer tm(time);
         INPUT inp = {0};
         inp.type = INPUT_MOUSE;
         switch (e.Button) {
@@ -40,15 +43,18 @@ namespace Envi {
             return;
         }
         SendInput(1, &inp, sizeof(INPUT));
+        tm.wait();
     }
 
     template<>
     void SendInput<MouseScrollEvent, std::chrono::milliseconds>(const MouseScrollEvent &e, const std::chrono::milliseconds& time) {
+        Envi::Timer tm(time);
         INPUT inp = {0};
         inp.type = INPUT_MOUSE;
         inp.mi.dwFlags = MOUSEEVENTF_WHEEL;
         inp.mi.mouseData = e.Offset * 120;
         SendInput(1, &inp, sizeof(INPUT));
+        tm.wait();
     }
 
     void SendMousePosition_Impl(int x, int y, int modifier) {
@@ -62,12 +68,39 @@ namespace Envi {
 
     template<>
     void SendInput<MousePositionOffsetEvent, std::chrono::milliseconds>(const MousePositionOffsetEvent &e, const std::chrono::milliseconds& time) {
-        SendMousePosition_Impl(e.X, e.Y, 0);
+        int tm = time.count();  // Hole time
+        if (tm == 0) {
+            SendMousePosition_Impl(e.X, e.Y, 0);
+            return;
+        }
+
+        int _xtTime = 1;
+        int _ytTime = 1;
+
+        // Set up time intervals
+        while (e.X != 0 && (e.X * _xtTime) / tm < 1) { _xtTime++; }
+        while (e.Y != 0 && (e.Y * _ytTime) / tm < 1) { _ytTime++; }
+
+        // Set up common interval
+        int _tTime = _xtTime > _ytTime ? _xtTime : _ytTime;
+
+        int xStep = (e.X * _tTime) / tm;
+        int yStep = (e.Y * _tTime) / tm;
+
+        for (int i = 0; i < tm / _tTime; i++) {
+            Envi::Timer timer = Envi::Timer(std::chrono::milliseconds(_tTime));
+            SendMousePosition_Impl(xStep, yStep, 0);
+            timer.wait();
+        }
+
+        SendMousePosition_Impl((e.X * _tTime) % tm, (e.Y * _tTime) % tm, 0);
     }
 
     template<>
     void SendInput<MousePositionAbsoluteEvent, std::chrono::milliseconds>(const MousePositionAbsoluteEvent &e, const std::chrono::milliseconds& time) {
+        Envi::Timer tm(time);
         SendMousePosition_Impl((e.X * 65536) / GetSystemMetrics(SM_CXSCREEN), (e.Y * 65536) / GetSystemMetrics(SM_CYSCREEN), MOUSEEVENTF_ABSOLUTE);
+        tm.wait();
     }
 
     DWORD ConvertToNative(Envi::KeyCodes key) {

@@ -7,6 +7,8 @@ int main(int argc, char** argv) {
         printf("Key pressed : %d | %d\n", cb.Pressed, cb.Key);
     })->OnEvent([](const Envi::MousePositionOffsetEvent& cb) {
         printf("Moved offset\n");
+    })->OnEvent([](const Envi::MouseButtonEvent& cb) {
+        printf("Mouse pressed\n");
     });
 
     auto inputManager = inputCfg->startListening();
