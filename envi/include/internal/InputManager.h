@@ -100,15 +100,14 @@ namespace Envi {
                 _mutex.unlock();
             }
             virtual void Wait() override {
-                while (_queue.size()) std::this_thread::sleep_for(std::chrono::milliseconds(4));
+                while (_queue.size()) std::this_thread::sleep_for(std::chrono::milliseconds(ENVI_INTERAPTION_MS));
             }
 
             void start() {
                 _thread = std::thread([&]() {
                     while (!_terminateManager) {
-                        // printf("Come in tick\n");
                         while (_paused) {
-                            std::this_thread::sleep_for(std::chrono::milliseconds(4));
+                            std::this_thread::sleep_for(std::chrono::milliseconds(ENVI_INTERAPTION_MS));
                         }
 
                         if (_queue.size()) {

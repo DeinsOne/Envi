@@ -19,7 +19,8 @@
     #endif
 #endif
 
-#define ENVI_PROPERTY_MAX_LENGTH 512
+#define ENVI_PROPERTY_MAX_LENGTH 4096
+#define ENVI_INTERAPTION_MS 5
 
 
 namespace Envi {

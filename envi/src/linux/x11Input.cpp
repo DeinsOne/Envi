@@ -51,7 +51,7 @@ namespace Envi {
         int _tTime = tm / abs(e.Offset);
 
         if(e.Offset < 0) {
-            for(auto i = 0; i < abs(e.Offset); i++) { /// cap at 5
+            for(auto i = 0; i < abs(e.Offset); i++) {
                 Envi::Timer timer = Envi::Timer(std::chrono::milliseconds(_tTime));
                 auto display = XOpenDisplay(NULL);
                 XTestFakeButtonEvent(display, Button5, True, CurrentTime);
@@ -60,7 +60,7 @@ namespace Envi {
                 timer.wait();
             }
         } else if(e.Offset > 0) {
-            for(auto i = 0; i < e.Offset; i++) { /// cap at 5
+            for(auto i = 0; i < e.Offset; i++) {
                 Envi::Timer timer = Envi::Timer(std::chrono::milliseconds(_tTime));
                 auto display = XOpenDisplay(NULL);
                 XTestFakeButtonEvent(display, Button4, True, CurrentTime);
