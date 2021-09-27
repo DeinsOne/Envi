@@ -11,7 +11,7 @@
 
 Envi::X11FrameProcessor::~X11FrameProcessor() {
     while (RecoverThreads > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(ENVI_INTERAPTION_MS));
     }
 
     if(ShmInfo) {

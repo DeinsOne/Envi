@@ -44,7 +44,7 @@ namespace Envi {
             }
 
             while (data->CommonData_.paused) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(30));
+                std::this_thread::sleep_for(std::chrono::milliseconds(ENVI_INTERAPTION_MS));
             }
 
             tm.wait();
