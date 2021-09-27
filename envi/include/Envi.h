@@ -1,24 +1,5 @@
 #pragma once
-
-#if defined(WINDOWS) || defined(WIN32)
-    #if defined(ENVI_DLL)
-        #define ENVI_C_EXTERN extern "C" __declspec(dllexport)
-        #define ENVI_EXTERN __declspec(dllexport)
-    #else
-        #define ENVI_C_EXTERN
-        #define ENVI_EXTERN
-    #endif
-#else
-    #if defined(ENVI_DLL)
-        #define ENVI_C_EXTERN extern "C"
-        #define ENVI_EXTERN
-    #else
-        #define ENVI_C_EXTERN
-        #define ENVI_EXTERN
-    #endif
-#endif
-
-#define ENVI_PROPERTY_MAX_LENGTH 512
+#include "EnviCore.h"
 
 #include <assert.h>
 #include <chrono>
@@ -35,7 +16,7 @@
 namespace Envi {
 
     struct Image;
-    struct ImageBGRA {
+    struct ENVI_EXTERN ImageBGRA {
         unsigned char B, G, R, A;
     };
 
@@ -133,5 +114,79 @@ namespace Envi {
             }
             std::chrono::microseconds duration() const { return Duration; }
     };
+
+
+    struct ENVI_EXTERN KeyEvent {
+        bool Pressed;
+        Envi::KeyCodes Key;
+        KeyEvent(const bool pressed, const Envi::KeyCodes key) : Pressed(pressed), Key(key) {}
+    };
+
+    struct ENVI_EXTERN MouseButtonEvent {
+        bool Pressed;
+        Envi::MouseButtons Button;
+        MouseButtonEvent(const bool pressed, const Envi::MouseButtons button) : Pressed(pressed), Button(button) {}
+    };
+
+    struct ENVI_EXTERN MouseScrollEvent {
+        int Offset;
+        MouseScrollEvent(const int offset) : Offset(offset) {}
+    };
+
+    struct ENVI_EXTERN MousePositionOffsetEvent {
+        int X = 0;
+        int Y = 0;
+        MousePositionOffsetEvent(const int x, const int y) : X(x), Y(y) {}
+        MousePositionOffsetEvent(const Envi::Point e) : X(e.x), Y(e.y) {}
+    };
+
+    struct ENVI_EXTERN MousePositionAbsoluteEvent {
+        int X = 0;
+        int Y = 0;
+        MousePositionAbsoluteEvent(const int x, const int y) : X(x), Y(y) {}
+        MousePositionAbsoluteEvent(const Envi::Point e) : X(e.x), Y(e.y) {}
+    };
+
+    template <typename Event, typename Duration>
+    ENVI_EXTERN void SendInput(const Event &e, const Duration& time);
+
+    typedef std::function<void(const KeyEvent& cb)> KeyCallback;
+    typedef std::function<void(const MouseButtonEvent& cb)> MouseButtonCallback;
+    typedef std::function<void(const MouseScrollEvent& cb)> MouseScrollCallback;
+    typedef std::function<void(const MousePositionOffsetEvent& cb)> MousePositionOffsetCallback;
+    typedef std::function<void(const MousePositionAbsoluteEvent& cb)> MousePositionAbsoluteCallback;
+
+    class ENVI_EXTERN IInputManager {
+        private:
+            using Ms = std::chrono::milliseconds;
+
+        public:
+            virtual void PushEvent(const KeyEvent &e, const Ms time = Ms(0)) = 0;
+            virtual void PushEvent(const MouseButtonEvent &e, const Ms time = Ms(0)) = 0;
+            virtual void PushEvent(const MouseScrollEvent &pos, const Ms time = Ms(0)) = 0;
+            virtual void PushEvent(const MousePositionOffsetEvent &pos, const Ms time = Ms(0)) = 0;
+            virtual void PushEvent(const MousePositionAbsoluteEvent &pos, const Ms time = Ms(0)) = 0;
+
+            virtual void Pause() = 0;
+            virtual bool IsPaused() = 0;
+            virtual void Resume() = 0;
+
+            virtual void Flush() = 0;
+            virtual void Wait() = 0;
+
+    };
+
+    class ENVI_EXTERN IInputConfiguration {
+        public:
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const KeyCallback& cb) = 0;
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MouseButtonCallback& cb) = 0;
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MouseScrollCallback& cb) = 0;
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MousePositionOffsetCallback& cb) = 0;
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MousePositionAbsoluteCallback& cb) = 0;
+
+            virtual std::shared_ptr<IInputManager> startListening() = 0;
+    };
+
+    ENVI_EXTERN std::shared_ptr<IInputConfiguration> CreateInputConfiguration();
 
 };

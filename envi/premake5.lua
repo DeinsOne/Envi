@@ -1,7 +1,7 @@
 
 project 'envi'
     language 'C++'
-    kind 'StaticLib'
+    kind 'SharedLib'
     cppdialect 'C++17'
     staticruntime 'on'
 
@@ -24,7 +24,8 @@ project 'envi'
             'src/linux/GetWindows.cpp',
             'src/linux/GetMonitors.cpp',
             'src/linux/x11FrameProcessor.cpp',
-            'src/linux/ThreadRunner.cpp'
+            'src/linux/ThreadRunner.cpp',
+            'src/linux/x11Input.cpp'
         }
 
         links {
@@ -35,6 +36,8 @@ project 'envi'
             'Xinerama',
             'jpeg',
             'stdc++fs',
+            'Xtst',
+            'Xfixes',
             'dl'
         }
 
@@ -43,7 +46,8 @@ project 'envi'
             'src/windows/GetWindows.cpp',
             'src/windows/GetMonitors.cpp',
             'src/windows/GDIFrameProcessor.cpp',
-            'src/windows/ThreadRunner.cpp'
+            'src/windows/ThreadRunner.cpp',
+            'envi/src/windows/GDIInput.cpp'
         }
 
         links {

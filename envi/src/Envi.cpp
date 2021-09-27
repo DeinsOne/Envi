@@ -2,6 +2,7 @@
 #include "Envi.h"
 #include "internal/EnviCommon.h"
 #include "internal/ThreadManager.h"
+#include "internal/InputManager.h"
 
 #include <algorithm>
 #include <cassert>
@@ -147,6 +148,49 @@ namespace Envi {
         auto _impl = std::make_shared<WindowCaptureManager>();
         _impl->_threadData->WindowCaptureData.GetThingsToWatch = windowstocapture;
         return std::make_shared<WindowCaptureConfiguration>(_impl)->SetTickInterval(16);
+    }
+
+
+    class InputConfiguration : public IInputConfiguration {
+        private:
+            std::shared_ptr<InputManager> _impl;
+
+        public:
+            InputConfiguration(const std::shared_ptr<InputManager>& mgr) : _impl(mgr) {  }
+
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const KeyCallback& cb) override {
+                _impl->keyCallback = cb;
+                return std::make_shared<InputConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MouseButtonCallback& cb) override {
+                _impl->mouseButtonCallback = cb;
+                return std::make_shared<InputConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MouseScrollCallback& cb) override {
+                _impl->mouseScrollCallback = cb;
+                return std::make_shared<InputConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MousePositionOffsetCallback& cb) override {
+                _impl->mousePositionOffsetCallback = cb;
+                return std::make_shared<InputConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<IInputConfiguration> OnEvent(const MousePositionAbsoluteCallback& cb) override {
+                _impl->mousePositionAbsoluteCallback = cb;
+                return std::make_shared<InputConfiguration>(_impl);
+            }
+
+            virtual std::shared_ptr<IInputManager> startListening() override {
+                _impl->start();
+                return _impl;
+            }
+    };
+
+    std::shared_ptr<IInputConfiguration> CreateInputConfiguration() {
+        return std::make_shared<InputConfiguration>(std::make_shared<InputManager>());
     }
 
 };
