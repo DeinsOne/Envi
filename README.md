@@ -26,7 +26,9 @@ Potentially this project will be used in computer vision one to interact with re
 There is premake extension file for premake5 build system. Just call premake.exe with specified target and compile generated project. More details are [there](https://premake.github.io/docs/) 
 
 ```
-Ubuntu 
+Ubuntu
+$> git clone https://github.com/DeinsOne/Envi.git
+$> cd Envi
 $> sudo apt-get install libxinerama-dev libxtst-dev libxcb-xfixes0 
 $> premake5 gmake
 $> make config=release
