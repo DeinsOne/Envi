@@ -1,4 +1,5 @@
 #include "Envi.h"
+#include "EnviUtils.h"
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput.h>
@@ -114,6 +115,16 @@ namespace Envi {
         XTestFakeMotionEvent(display, -1, e.X, e.Y, CurrentTime);
         XCloseDisplay(display);
         tm.wait();
+    }
+
+    bool IsKeyPressed(const Envi::KeyCodes& key) {
+        auto display = XOpenDisplay(NULL);
+        char keys_return[32];
+        XQueryKeymap(display, keys_return);
+        KeyCode kc2 = ConvertToNative(key);
+        bool isPressed = !!(keys_return[kc2 >> 3] & (1 << (kc2 & 7)));
+        XCloseDisplay(display);
+        return isPressed;
     }
 
     KeyCode ConvertToNative(Envi::KeyCodes key) {

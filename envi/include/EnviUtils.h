@@ -67,5 +67,9 @@ namespace Envi {
         }
     }
 
+    /**
+     * Returns true if key is pressed and false if released
+    */
+    bool ENVI_EXTERN IsKeyPressed(const Envi::KeyCodes& key);
 
 }

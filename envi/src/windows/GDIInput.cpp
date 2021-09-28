@@ -103,6 +103,11 @@ namespace Envi {
         tm.wait();
     }
 
+    bool IsKeyPressed(const Envi::KeyCodes& key) {
+        if (GetKeyState(ConvertToNative(key)) & 0x8000 ) return true;
+        else return false;
+    }
+
     DWORD ConvertToNative(Envi::KeyCodes key) {
         switch (key) {
         case KeyCodes::KEY_A:
