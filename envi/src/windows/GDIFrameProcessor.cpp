@@ -140,7 +140,9 @@ namespace Envi {
 
         if (!IsWindow(SelectedWindow) || selectedwindow.Size.x != Width(ret) || selectedwindow.Size.y != Height(ret)) {
             // Call OnFrameChanged with old window and image
-            ProcessFrameChanged(Data->WindowCaptureData, *this, selectedwindow );
+            if (Data->WindowCaptureData.OnFrameChanged) {
+                ProcessFrameChanged(Data->WindowCaptureData, *this, selectedwindow );
+            }
 
             return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; // window size changed. This will rebuild everything
         }

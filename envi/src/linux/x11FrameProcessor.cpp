@@ -77,7 +77,9 @@ Envi::DUPL_RETURN Envi::X11FrameProcessor::ProcessFrame(Window& selectedwindow){
 
     if(wndattr.width != Width(selectedwindow) || wndattr.height != Height(selectedwindow)) {
         // Call OnFrameChanged with old window and image
-        ProcessFrameChanged(Data->WindowCaptureData, *this, selectedwindow );
+        if (Data->WindowCaptureData.OnFrameChanged) {
+            ProcessFrameChanged(Data->WindowCaptureData, *this, selectedwindow );
+        }
 
         return DUPL_RETURN::DUPL_RETURN_ERROR_EXPECTED; //window size changed. This will rebuild everything
     }
