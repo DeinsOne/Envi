@@ -22,6 +22,10 @@
 #define ENVI_PROPERTY_MAX_LENGTH 4096
 #define ENVI_INTERAPTION_MS 5
 
+#define ENVI_RECOVER_DIR "tmp/"
+#define ENVI_RECOVER_INSTANCES_LIMIT 20
+#define ENVI_RECOVER_THREADS_LIMIT std::thread::hardware_concurrency()
+
 
 namespace Envi {
 

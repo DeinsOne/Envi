@@ -9,12 +9,6 @@
   namespace fs = std::experimental::filesystem;
 #endif
 
-#define ENVI_RECOVER_DIR "tmp/"
-#define ENVI_RECOVER_INSTANCES_LIMIT 20
-// #define ENVI_RECOVER_THREADS_LIMIT 6
-#define ENVI_RECOVER_THREADS_LIMIT std::thread::hardware_concurrency()
-
-
 namespace Envi {
 
     /**
