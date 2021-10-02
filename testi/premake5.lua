@@ -18,7 +18,7 @@ project 'testcapturing'
     }
 
     links {
-        'envi'
+        'envil'
     }
 
     filter 'system:linux'
@@ -68,7 +68,7 @@ project 'testinput'
     }
 
     links {
-        'envi'
+        'envil'
     }
 
     filter 'system:linux'
